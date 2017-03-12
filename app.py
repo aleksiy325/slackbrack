@@ -67,42 +67,77 @@ def logout():
 def user_page():
     return render_template('pages/user.html', title='user')
 
+
+
 @app.route("/newtourney", methods=['GET', 'POST'])
 def new_tourney():
-    #TODO ADD SLACK
-    uid = str(uuid.uuid4()).replace('-', '')
-    data = challonge.tournaments.create(uid, uid)
-    tournament = Tournament(data['id'])
-    db.session.add(tournament)
-    db.session.commit()
-    return
+    if request.method == 'POST':
+        print "slack"
+    else:
+        #webapp
+        if not current_user.is_authenticated:
+            return redirect('/', code=302)
+
+        t = Tournament(current_user.team_id)
+
+    return redirect('/tournament/' + str(t.challonge_id), code=302)
+
+@app.route("/tournament/<challonge_id>",  methods=['GET'])
+def tournament(challonge_id):
+    tournament = Tournament.query.filter_by(challonge_id=challonge_id).first()
+    data = None
+    if tournament is not None:
+        data = tournament.get_data()
+    return render_template('pages/tournament.html', title='user', tournament=tournament, data=data)
+
 
 @app.route("/jointourney", methods=['GET', 'POST'])
 def join_tourney():
-    #TODO ADD SLACK
-    uid = str(uuid.uuid4()).replace('-', '')
-    tournament = Tournament.query.all()[0]
-    data = challonge.participants.create(tournament.challonge_id, uid)
-    return
+    if request.method == 'POST':
+        #slack
+        print "test"
+    else:
+        #webapp
+        if not current_user.is_authenticated:
+            return redirect('/', code=302)
+
+        tournament = Tournament.query.filter_by(team_id=current_user.team_id).first()
+        tournament.join(current_user.slack_id)
+
+    return redirect('/tournament/' + str(tournament.challonge_id), code=302)
+
 
 @app.route("/starttourney", methods=['GET', 'POST'])
 def start_tourney():
+    if request.method == 'POST':
+        #slack
+        print "test"
+    else:
+        #webapp
+        if not current_user.is_authenticated:
+            return redirect('/', code=302)
+        tournament = Tournament.query.filter_by(team_id=current_user.team_id).first()
+        tournament.start()
 
-
-    #TODO get tourney and start matches
-    tournament = Tournament.query.all()[0]
-    data = challonge.tournaments.start(tournament.challonge_id)
-    matches = challonge.matches.index(tournament.challonge_id)
-    return
+    return redirect('/tournament/' + str(tournament.challonge_id), code=302)
 
 @app.route("/score", methods=['GET', 'POST'])
-def report_match
+def report_match():
+    if request.method == 'POST':
+        #slack
+        print "test"
+    else:
+        #webapp
+        if not current_user.is_authenticated:
+            return redirect('/', code=302)
+
+
     #TODO slack
     score = "1-3"
     match_id = "someid"
     match_winner = "someid"
-    data = challognge.matches.update(match_id = match_id, scores_csv=score, match_winner=match_winner)
-    
+    data = challonge.matches.update(match_id = match_id, scores_csv=score, match_winner=match_winner)
+
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)

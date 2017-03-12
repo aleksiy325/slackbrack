@@ -1,5 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
+import uuid
+import challonge
+from keys import CHALLONGE_API_KEY, CHALLONGE_USERNAME
+
 db = SQLAlchemy()
+challonge.set_credentials(CHALLONGE_USERNAME, CHALLONGE_API_KEY)
 
 class User(db.Model):
     __tablename__ = 'user'
@@ -39,7 +44,33 @@ class Tournament(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     challonge_id = db.Column(db.Integer, unique=True)
     active = db.Column(db.Boolean, default=True)
+    team_id = db.Column(db.String(80))
+    uid = db.Column(db.String(80))
 
 
-    def __init__(self, challonge_id):
-        self.challonge_id = challonge_id
+    def __init__(self, team_id):
+        uid = str(uuid.uuid4()).replace('-', '')
+        data = challonge.tournaments.create(uid, uid)
+        self.challonge_id = data['id'], 
+        self.team_id = team_id
+        self.uid = uid
+        db.session.add(self)
+        db.session.commit()
+
+    def get_data(self):
+        return challonge.tournaments.show(self.challonge_id)
+
+    def join(self, slack_id):
+        return challonge.participants.create(self.challonge_id, slack_id)
+
+    def start(self):
+        return challonge.tournaments.start(self.challonge_id)
+ 
+ class  Match(db.Model):
+        __tablename__ = 'tournament'
+        id = db.Column(db.Integer, primary_key=True)
+        team_id = db.Column(db.String(80))
+        challonge_id = db.Column(db.Integer, default=None)
+
+    def __init__(self, team_id):
+        self.team_id = team_id

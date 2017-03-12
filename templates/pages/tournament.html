@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block main %}
+
+{% if tournament %}
+{{ data['name']}}
+<a href="{{ data['full-challonge-url']}}">{{ data['full-challonge-url']}}</a>
+{% else %}
+Tournament not found
+{% endif %}
+
+{% endblock %}
