@@ -1,11 +1,13 @@
 from flask import Flask, url_for, render_template, request, redirect
 from werkzeug.routing import BaseConverter
-from models.models import User, db
-from keys import DATABASE_URI, SLACK_OAUTH_URL, FLASK_SECRET_KEY
+from models.models import User, Tournament, db
+from keys import DATABASE_URI, SLACK_OAUTH_URL, FLASK_SECRET_KEY, CHALLONGE_USERNAME, CHALLONGE_API_KEY, SLACK_VERIFICATION_TOKEN
 import requests
 import json
 from flask_login import LoginManager, login_required, login_user, current_user, logout_user
 import challonge
+from slackclient import SlackClient
+import uuid
 
 app = Flask(__name__)
 app.secret_key = FLASK_SECRET_KEY
@@ -17,6 +19,7 @@ login_manager.init_app(app)
 
 db.init_app(app)
 challonge.set_credentials(CHALLONGE_USERNAME, CHALLONGE_API_KEY)
+sc = SlackClient(SLACK_VERIFICATION_TOKEN)
 
 @login_manager.user_loader
 def user_loader(id):
@@ -64,10 +67,42 @@ def logout():
 def user_page():
     return render_template('pages/user.html', title='user')
 
+@app.route("/newtourney", methods=['GET', 'POST'])
+def new_tourney():
+    #TODO ADD SLACK
+    uid = str(uuid.uuid4()).replace('-', '')
+    data = challonge.tournaments.create(uid, uid)
+    tournament = Tournament(data['id'])
+    db.session.add(tournament)
+    db.session.commit()
+    return
+
+@app.route("/jointourney", methods=['GET', 'POST'])
+def join_tourney():
+    #TODO ADD SLACK
+    uid = str(uuid.uuid4()).replace('-', '')
+    tournament = Tournament.query.all()[0]
+    data = challonge.participants.create(tournament.challonge_id, uid)
+    return
+
+@app.route("/starttourney", methods=['GET', 'POST'])
+def start_tourney():
 
 
+    #TODO get tourney and start matches
+    tournament = Tournament.query.all()[0]
+    data = challonge.tournaments.start(tournament.challonge_id)
+    matches = challonge.matches.index(tournament.challonge_id)
+    return
 
-
+@app.route("/score", methods=['GET', 'POST'])
+def report_match
+    #TODO slack
+    score = "1-3"
+    match_id = "someid"
+    match_winner = "someid"
+    data = challognge.matches.update(match_id = match_id, scores_csv=score, match_winner=match_winner)
+    
 
 if __name__ == "__main__":
     app.run()

@@ -30,6 +30,16 @@ class User(db.Model):
     def is_anonymous(self):
         return False
 
-
     def __repr__(self):
         return '<User %r>' % self.slack_name
+
+
+class Tournament(db.Model):
+    __tablename__ = 'tournament'
+    id = db.Column(db.Integer, primary_key=True)
+    challonge_id = db.Column(db.Integer, unique=True)
+    active = db.Column(db.Boolean, default=True)
+
+
+    def __init__(self, challonge_id):
+        self.challonge_id = challonge_id
