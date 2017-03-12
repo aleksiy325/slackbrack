@@ -66,11 +66,11 @@ class Tournament(db.Model):
     def start(self):
         return challonge.tournaments.start(self.challonge_id)
  
- class  Match(db.Model):
-        __tablename__ = 'tournament'
-        id = db.Column(db.Integer, primary_key=True)
-        team_id = db.Column(db.String(80))
-        challonge_id = db.Column(db.Integer, default=None)
+class  Match(db.Model):
+    __tablename__ = 'match'
+    id = db.Column(db.Integer, primary_key=True)
+    team_id = db.Column(db.String(80))
+    challonge_id = db.Column(db.Integer, default=None)
 
     def __init__(self, team_id):
         self.team_id = team_id

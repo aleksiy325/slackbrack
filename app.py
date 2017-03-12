@@ -69,6 +69,13 @@ def user_page():
 
 
 
+@app.route("/test", methods=['POST'])
+def new_tourney():
+    
+
+    return  
+
+
 @app.route("/newtourney", methods=['GET', 'POST'])
 def new_tourney():
     if request.method == 'POST':
