@@ -70,7 +70,7 @@ def user_page():
 
 
 @app.route("/test", methods=['POST'])
-def new_tourney():
+def test():
     
 
     return  
